@@ -6,7 +6,6 @@ import models.lombok.LoginBodyLombokModel;
 import models.lombok.LoginResponseLombokModel;
 import models.lombok.MissingPasswordModel;
 import models.pojo.LoginBodyModel;
-import models.pojo.LoginResponseModel;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import specs.LoginSpec;
