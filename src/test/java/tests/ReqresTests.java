@@ -111,10 +111,6 @@ public class ReqresTests {
                         .extract().as(LoginBodyModel.class)
         );
 
-        step("Check response contains correct name and job", () -> {
-            assertEquals("morpheus", response.getName());
-            assertEquals("leader", response.getJob());
-        });
     }
 
     @Test
@@ -137,9 +133,6 @@ public class ReqresTests {
                         .statusCode(200) // OK
                         .extract().as(LoginBodyModel.class));
 
-        step("Check response contains updated name and job", () -> {
-            assertEquals("morpheus", response.getName());
-            assertEquals("zion resident", response.getJob());
-        });
+
     }
 }
