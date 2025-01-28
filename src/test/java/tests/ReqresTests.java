@@ -4,7 +4,7 @@ package tests;
 import io.restassured.RestAssured;
 import models.lombok.LoginBodyLombokModel;
 import models.lombok.LoginResponseLombokModel;
-import models.lombok.MissingPasswordLombokModel;
+import models.lombok.MissingPasswordModel;
 import models.pojo.LoginBodyModel;
 import models.pojo.LoginResponseModel;
 import org.junit.jupiter.api.BeforeAll;
@@ -50,7 +50,7 @@ public class ReqresTests {
         LoginBodyLombokModel authData = new LoginBodyLombokModel();
         authData.setEmail("eve.holt@reqres.in");
 
-        MissingPasswordLombokModel response = step("Make request for login with missing password", () ->
+        MissingPasswordModel response = step("Make request for login with missing password", () ->
                 given(LoginSpec.loginRequestSpec)
                         .body(authData)
 
@@ -59,7 +59,7 @@ public class ReqresTests {
 
                         .then()
                         .spec(LoginSpec.missingPasswordResponseSpec)
-                        .extract().as(MissingPasswordLombokModel.class)
+                        .extract().as(MissingPasswordModel.class)
         );
 
         step("Check error message in response", () ->
@@ -73,7 +73,7 @@ public class ReqresTests {
         authData.setEmail("wrong.email@reqres.in");
         authData.setPassword("wrongpassword");
 
-        LoginResponseModel response = step("Make request for login with invalid credentials", () ->
+        MissingPasswordModel response = step("Make request for login with invalid credentials", () ->
                 given(LoginSpec.loginRequestSpec)
                         .body(authData)
 
@@ -82,7 +82,7 @@ public class ReqresTests {
 
                         .then()
                         .spec(LoginSpec.invalidCredentialsResponseSpec)
-                        .extract().as(LoginResponseModel.class)
+                        .extract().as(MissingPasswordModel.class)
         );
 
         step("Check error message in response", () ->
