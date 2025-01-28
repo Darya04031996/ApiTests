@@ -1,13 +1,13 @@
 package tests;
 
-import io.qameta.allure.Step;
+
 import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.filter.log.LogDetail;
+import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import models.lombok.CreateUserRequest;
 import models.lombok.RegistrationRequest;
 import models.lombok.UpdateUserRequest;
+import models.pojo.LoginBodyModel;
+import models.pojo.LoginResponseModel;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +17,7 @@ import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static specs.LoginSpec.*;
 
 public class ReqresTests {
@@ -29,125 +30,115 @@ public class ReqresTests {
     }
 
     @Test
-    @DisplayName("Проверка аватаров всех пользователей на странице")
-    void allUsersHaveValidAvatarsTest() {
-        step("Проверяем, что все пользователи на странице имеют валидные аватары", () ->
-                given()
-                        .spec(LoginSpec.loginRequestSpec)
-                        .when()
-                        .get("/users?page=2")
-                        .then()
-                        .statusCode(200)
-                        .body("data.every { it.avatar != null && it.avatar.startsWith('https://') }", is(true))
-        );
+    @DisplayName("Успешный логин с правильными данными")
+    void testSuccessfulLogin() {
+        step("Отправляем запрос на логин с корректными данными", () -> {
+            LoginBodyModel loginBody = new LoginBodyModel();
+            loginBody.setEmail("eve.holt@reqres.in");
+            loginBody.setPassword("cityslicka");
+
+            Response response = given()
+                    .spec(LoginSpec.loginRequestSpec)
+                    .body(loginBody)
+                    .post();
+
+            step("Проверяем, что статус ответа равен 200 и токен присутствует", () -> {
+                response.then().spec(LoginSpec.loginResponseSpec);
+
+                LoginResponseModel loginResponse = response.as(LoginResponseModel.class);
+                assertNotNull(loginResponse.getToken(), "Токен должен быть не null");
+                assertTrue(loginResponse.getToken().length() > 0, "Токен должен быть не пустым");
+            });
+        });
     }
 
     @Test
-    @DisplayName("Проверка, что email всех пользователей уникальны")
-    void allUsersHaveUniqueEmailsTest() {
-        step("Проверяем, что email пользователей уникальны", () ->
-                given()
-                        .spec(LoginSpec.loginRequestSpec)
-                        .when()
-                        .get("/users?page=2")
-                        .then()
-                        .statusCode(200)
-                        .body("data.collect { it.email }.unique().size()", is(6))
-        );
+    @DisplayName("Ошибка логина с неверными данными")
+    void testLoginWithInvalidCredentials() {
+        step("Отправляем запрос на логин с неверным email и паролем", () -> {
+            LoginBodyModel loginBody = new LoginBodyModel();
+            loginBody.setEmail("invalid@example.com");
+            loginBody.setPassword("wrongpassword");
+
+            Response response = given()
+                    .spec(LoginSpec.loginRequestSpec)
+                    .body(loginBody)
+                    .post();
+
+            step("Проверяем, что статус ответа равен 400 и сообщение об ошибке корректное", () -> {
+                response.then()
+                        .spec(LoginSpec.invalidCredentialsResponseSpec);
+
+                String error = response.jsonPath().getString("error");
+                assertEquals("Invalid login credentials", error, "Сообщение об ошибке некорректно");
+            });
+        });
     }
 
     @Test
-    @DisplayName("Ошибка при регистрации без пароля")
-    void registrationWithoutPasswordTest() {
-        RegistrationRequest authData = new RegistrationRequest("eve.holt@reqres.in", null);
+    @DisplayName("Успешная регистрация нового пользователя")
+    void testSuccessfulRegistration() {
+        step("Отправляем запрос на регистрацию с корректными данными", () -> {
+            RegistrationRequest registrationBody = new RegistrationRequest();
+            registrationBody.setEmail("newuser@example.com");
+            registrationBody.setPassword("newpassword");
 
-        step("Отправляем запрос на регистрацию без пароля", () ->
-                given()
-                        .spec(LoginSpec.loginRequestSpec)
-                        .body(authData)
-                        .when()
-                        .post("/register")
-                        .then()
-                        .spec(LoginSpec.missingPasswordResponseSpec)
-                        .body("error", is("Missing password"))
-        );
+            Response response = given()
+                    .spec(LoginSpec.loginRequestSpec)
+                    .body(registrationBody)
+                    .post("https://reqres.in/api/register");
+
+            step("Проверяем, что статус ответа равен 201 и токен присутствует", () -> {
+                response.then().spec(LoginSpec.registrationResponseSpec);
+
+                LoginResponseModel loginResponse = response.as(LoginResponseModel.class);
+                assertNotNull(loginResponse.getToken(), "Токен должен быть не null");
+                assertTrue(loginResponse.getToken().length() > 0, "Токен должен быть не пустым");
+            });
+        });
     }
 
     @Test
-    @DisplayName("Получение данных несуществующего пользователя")
-    void getNonExistingUserTest() {
-        step("Проверяем, что запрос на несуществующего пользователя возвращает 404", () ->
-                given()
-                        .spec(LoginSpec.loginRequestSpec)
-                        .when()
-                        .get("/users/999")
-                        .then()
-                        .statusCode(404)
-        );
+    @DisplayName("Ошибка регистрации без пароля")
+    void testRegistrationWithMissingPassword() {
+        step("Отправляем запрос на регистрацию без указания пароля", () -> {
+            RegistrationRequest registrationBody = new RegistrationRequest();
+            registrationBody.setEmail("newuser@example.com");
+
+            Response response = given()
+                    .spec(LoginSpec.loginRequestSpec)
+                    .body(registrationBody)
+                    .post("https://reqres.in/api/register");
+
+            step("Проверяем, что статус ответа равен 400 и сообщение об ошибке корректное", () -> {
+                response.then().spec(LoginSpec.missingPasswordResponseSpec);
+
+                String error = response.jsonPath().getString("error");
+                assertEquals("Missing password", error, "Сообщение об ошибке некорректно");
+            });
+        });
     }
 
     @Test
-    @DisplayName("Проверка успешного создания и обновления пользователя")
-    void createAndUpdateUserTest() {
-        UpdateUserRequest authData = new UpdateUserRequest("darya", "Middle QA");
+    @DisplayName("Успешное обновление данных пользователя")
+    void testUpdateUser() {
+        step("Отправляем запрос на обновление данных пользователя", () -> {
+            UpdateUserRequest updateUserBody = new UpdateUserRequest();
+            updateUserBody.setName("John Doe");
+            updateUserBody.setJob("Software Developer");
 
-        String userId = step("Создаём нового пользователя", () ->
-                given()
-                        .spec(LoginSpec.loginRequestSpec)
-                        .body(authData)
-                        .when()
-                        .post("/users")
-                        .then()
-                        .statusCode(201)
-                        .body("name", is("darya"))
-                        .body("job", is("Middle QA"))
-                        .extract().path("id")
-        );
+            Response response = given()
+                    .spec(LoginSpec.loginRequestSpec)
+                    .body(updateUserBody)
+                    .put("https://reqres.in/api/users/2");
 
-        authData.setName("darya");
-        authData.setJob("Senior QA");
+            step("Проверяем, что статус ответа равен 200 и данные пользователя обновлены", () -> {
+                response.then().statusCode(200);
 
-        step("Обновляем данные пользователя", () ->
-                given()
-                        .spec(LoginSpec.loginRequestSpec)
-                        .body(authData)
-                        .when()
-                        .put("/users/" + userId)
-                        .then()
-                        .statusCode(200)
-                        .body("name", is("darya"))
-                        .body("job", is("Senior QA"))
-        );
-    }
-
-    @Test
-    @DisplayName("Создание пользователя с некорректным JSON")
-    void createUserWithInvalidJsonTest() {
-        String invalidJson = "{name: 'alex'}";
-
-        step("Отправляем запрос с некорректным JSON", () ->
-                given()
-                        .spec(LoginSpec.loginRequestSpec)
-                        .body(invalidJson)
-                        .when()
-                        .post("/users")
-                        .then()
-                        .statusCode(400)
-        );
-    }
-
-    @Test
-    @DisplayName("Проверка количества пользователей на странице")
-    void userCountPerPageTest() {
-        step("Проверяем количество пользователей на странице", () ->
-                given()
-                        .spec(LoginSpec.loginRequestSpec)
-                        .when()
-                        .get("/users?page=2")
-                        .then()
-                        .statusCode(200)
-                        .body("data.size()", is(6))
-                        .body("per_page", is(6))
-        );
+                UpdateUserRequest updatedUser = response.as(UpdateUserRequest.class);
+                assertEquals("John Doe", updatedUser.getName(), "Имя пользователя не обновлено");
+                assertEquals("Software Developer", updatedUser.getJob(), "Должность пользователя не обновлена");
+            });
+        });
     }
 }
