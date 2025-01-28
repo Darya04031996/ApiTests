@@ -59,12 +59,14 @@ public class ReqresTests {
     @Test
     @DisplayName("Ошибка при регистрации без пароля")
     void registrationWithoutPasswordTest() {
-        RegistrationRequest request = new RegistrationRequest("eve.holt@reqres.in", null);
+        RegistrationRequest authData = new RegistrationRequest();
+        authData.setEmail("eve.holt@reqres.in");
+        authData.setPassword(null);
 
         step("Отправляем запрос на регистрацию без пароля", () ->
                 given()
                         .spec(loginRequestSpec)
-                        .body(request)
+                        .body(authData)
                         .when()
                         .post("/register")
                         .then()
@@ -89,12 +91,14 @@ public class ReqresTests {
     @Test
     @DisplayName("Проверка успешного создания и обновления пользователя")
     void createAndUpdateUserTest() {
-        CreateUserRequest createUserRequest = new CreateUserRequest("darya", "Middle QA");
+        UpdateUserRequest authData = new UpdateUserRequest();
+        authData.setName("darya");
+        authData.setJob("Middle QA");
 
         String userId = step("Создаём нового пользователя", () ->
                 given()
                         .spec(spec)
-                        .body(createUserRequest)
+                        .body(authData)
                         .when()
                         .post("/users")
                         .then()
@@ -104,12 +108,14 @@ public class ReqresTests {
                         .extract().path("id")
         );
 
-        UpdateUserRequest updateUserRequest = new UpdateUserRequest("Dasha", "Senior QA");
+        authData.setName("darya");
+        authData.setJob("Senior QA");
+
 
         step("Обновляем данные пользователя", () ->
                 given()
                         .spec(spec)
-                        .body(updateUserRequest)
+                        .body(authData)
                         .when()
                         .put("/users/" + userId)
                         .then()
