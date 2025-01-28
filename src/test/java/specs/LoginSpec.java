@@ -33,14 +33,14 @@ public class LoginSpec {
 
 
     public static ResponseSpecification missingPasswordResponseSpec = new ResponseSpecBuilder()
-            .expectStatusCode(400)  // Ожидаем статус 400
+            .expectStatusCode(400)
             .log(STATUS)
             .log(BODY)
             .build();
 
 
     public static ResponseSpecification invalidCredentialsResponseSpec = new ResponseSpecBuilder()
-            .expectStatusCode(400)  // Ожидаем статус 400
+            .expectStatusCode(400)
             .log(STATUS)
             .log(BODY)
             .build();
