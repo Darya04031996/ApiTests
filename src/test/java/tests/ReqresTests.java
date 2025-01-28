@@ -2,7 +2,7 @@ package tests;
 
 
 import io.restassured.RestAssured;
-import models.lombok.*;
+import lombok.*;
 import models.pojo.CreateUserLombokModel;
 import models.pojo.UpdateUserLombokModel;
 import models.pojo.UpdateUserResponseLombokModel;

@@ -1,9 +1,7 @@
-package models.lombok;
-
-import lombok.Data;
+package lombok;
 
 @Data
-public class UpdateUserLombokModel {
+public class CreateUserLombokModel {
     private String name;  // Имя пользователя
     private String job;   // Должность пользователя
 }

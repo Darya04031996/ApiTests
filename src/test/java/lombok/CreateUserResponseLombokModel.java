@@ -1,6 +1,4 @@
-package pojo;
-
-import lombok.Data;
+package lombok;
 
 @Data
 public class CreateUserResponseLombokModel {
