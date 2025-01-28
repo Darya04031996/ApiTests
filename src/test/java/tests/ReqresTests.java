@@ -2,14 +2,14 @@ package tests;
 
 
 import io.restassured.RestAssured;
-import lombok.*;
-import models.pojo.CreateUserLombokModel;
-import models.pojo.UpdateUserLombokModel;
-import models.pojo.UpdateUserResponseLombokModel;
+import models.lombok.LoginBodyLombokModel;
+import models.lombok.LoginResponseLombokModel;
+import models.lombok.MissingPasswordLombokModel;
+import models.pojo.LoginBodyModel;
+import models.pojo.LoginResponseModel;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import specs.LoginSpec;
-
 import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -50,7 +50,7 @@ public class ReqresTests {
         LoginBodyLombokModel authData = new LoginBodyLombokModel();
         authData.setEmail("eve.holt@reqres.in");
 
-        MissingPasswordModel response = step("Make request for login with missing password", () ->
+        MissingPasswordLombokModel response = step("Make request for login with missing password", () ->
                 given(LoginSpec.loginRequestSpec)
                         .body(authData)
 
@@ -59,7 +59,7 @@ public class ReqresTests {
 
                         .then()
                         .spec(LoginSpec.missingPasswordResponseSpec)
-                        .extract().as(MissingPasswordModel.class)
+                        .extract().as(MissingPasswordLombokModel.class)
         );
 
         step("Check error message in response", () ->
@@ -73,7 +73,7 @@ public class ReqresTests {
         authData.setEmail("wrong.email@reqres.in");
         authData.setPassword("wrongpassword");
 
-        ErrorResponseLombokModel response = step("Make request for login with invalid credentials", () ->
+        LoginResponseModel response = step("Make request for login with invalid credentials", () ->
                 given(LoginSpec.loginRequestSpec)
                         .body(authData)
 
@@ -82,7 +82,7 @@ public class ReqresTests {
 
                         .then()
                         .spec(LoginSpec.invalidCredentialsResponseSpec)
-                        .extract().as(ErrorResponseLombokModel.class)
+                        .extract().as(LoginResponseModel.class)
         );
 
         step("Check error message in response", () ->
@@ -92,23 +92,23 @@ public class ReqresTests {
 
     @Test
     void successfulUserCreationTest() {
-        CreateUserLombokModel userData = new CreateUserLombokModel();
-        userData.setName("morpheus");
-        userData.setJob("leader");
+        LoginBodyModel authData = new LoginBodyModel();
+        authData.setName("morpheus");
+        authData.setJob("leader");
 
-        CreateUserResponseLombokModel response = step("Make request for user creation", () ->
+        LoginBodyModel response = step("Make request for user creation", () ->
                 given()
                         .contentType(JSON)
                         .log().uri()
                         .log().body()
-                        .body(userData)
+                        .body(authData)
 
                         .when()
                         .post("/api/users")
 
                         .then()
                         .statusCode(201) // CREATED
-                        .extract().as(CreateUserResponseLombokModel.class)
+                        .extract().as(LoginBodyModel.class)
         );
 
         step("Check response contains correct name and job", () -> {
@@ -119,24 +119,23 @@ public class ReqresTests {
 
     @Test
     void successfulUserUpdateTest() {
-        UpdateUserLombokModel updateData = new UpdateUserLombokModel();
-        updateData.setName("morpheus");
-        updateData.setJob("zion resident");
+        LoginBodyModel authData = new LoginBodyModel();
+        authData.setName("morpheus");
+        authData.setJob("zion resident");
 
-        UpdateUserResponseLombokModel response = step("Make request to update user information", () ->
+        LoginBodyModel response = step("Make request to update user information", () ->
                 given()
                         .contentType(JSON)
                         .log().uri()
                         .log().body()
-                        .body(updateData)
+                        .body(authData)
 
                         .when()
                         .put("/api/users/2")
 
                         .then()
                         .statusCode(200) // OK
-                        .extract().as(UpdateUserResponseLombokModel.class)
-        );
+                        .extract().as(LoginBodyModel.class));
 
         step("Check response contains updated name and job", () -> {
             assertEquals("morpheus", response.getName());

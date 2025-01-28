@@ -45,10 +45,4 @@ public class LoginSpec {
             .log(BODY)
             .build();
 
-
-    public static ResponseSpecification registrationResponseSpec = new ResponseSpecBuilder()
-            .expectStatusCode(201)
-            .log(STATUS)
-            .log(BODY)
-            .build();
 }
