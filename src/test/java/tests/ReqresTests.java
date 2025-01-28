@@ -11,6 +11,7 @@ import models.lombok.UpdateUserRequest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import specs.LoginSpec;
 
 import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.given;
@@ -23,9 +24,8 @@ public class ReqresTests {
     private static RequestSpecification spec;
 
     @BeforeAll
-    public static void setUp() { {
+    public static void setUp() {
         RestAssured.baseURI = "https://reqres.in";
-    }
     }
 
     @Test
@@ -33,7 +33,7 @@ public class ReqresTests {
     void allUsersHaveValidAvatarsTest() {
         step("Проверяем, что все пользователи на странице имеют валидные аватары", () ->
                 given()
-                        .spec(spec)
+                        .spec(LoginSpec.loginRequestSpec)
                         .when()
                         .get("/users?page=2")
                         .then()
@@ -47,7 +47,7 @@ public class ReqresTests {
     void allUsersHaveUniqueEmailsTest() {
         step("Проверяем, что email пользователей уникальны", () ->
                 given()
-                        .spec(spec)
+                        .spec(LoginSpec.loginRequestSpec)
                         .when()
                         .get("/users?page=2")
                         .then()
@@ -59,18 +59,16 @@ public class ReqresTests {
     @Test
     @DisplayName("Ошибка при регистрации без пароля")
     void registrationWithoutPasswordTest() {
-        RegistrationRequest authData = new RegistrationRequest();
-        authData.setEmail("eve.holt@reqres.in");
-        authData.setPassword(null);
+        RegistrationRequest authData = new RegistrationRequest("eve.holt@reqres.in", null);
 
         step("Отправляем запрос на регистрацию без пароля", () ->
                 given()
-                        .spec(loginRequestSpec)
+                        .spec(LoginSpec.loginRequestSpec)
                         .body(authData)
                         .when()
                         .post("/register")
                         .then()
-                        .spec(missingPasswordResponseSpec)
+                        .spec(LoginSpec.missingPasswordResponseSpec)
                         .body("error", is("Missing password"))
         );
     }
@@ -80,7 +78,7 @@ public class ReqresTests {
     void getNonExistingUserTest() {
         step("Проверяем, что запрос на несуществующего пользователя возвращает 404", () ->
                 given()
-                        .spec(spec)
+                        .spec(LoginSpec.loginRequestSpec)
                         .when()
                         .get("/users/999")
                         .then()
@@ -91,13 +89,11 @@ public class ReqresTests {
     @Test
     @DisplayName("Проверка успешного создания и обновления пользователя")
     void createAndUpdateUserTest() {
-        UpdateUserRequest authData = new UpdateUserRequest();
-        authData.setName("darya");
-        authData.setJob("Middle QA");
+        UpdateUserRequest authData = new UpdateUserRequest("darya", "Middle QA");
 
         String userId = step("Создаём нового пользователя", () ->
                 given()
-                        .spec(spec)
+                        .spec(LoginSpec.loginRequestSpec)
                         .body(authData)
                         .when()
                         .post("/users")
@@ -111,16 +107,15 @@ public class ReqresTests {
         authData.setName("darya");
         authData.setJob("Senior QA");
 
-
         step("Обновляем данные пользователя", () ->
                 given()
-                        .spec(spec)
+                        .spec(LoginSpec.loginRequestSpec)
                         .body(authData)
                         .when()
                         .put("/users/" + userId)
                         .then()
                         .statusCode(200)
-                        .body("name", is("Dasha"))
+                        .body("name", is("darya"))
                         .body("job", is("Senior QA"))
         );
     }
@@ -132,7 +127,7 @@ public class ReqresTests {
 
         step("Отправляем запрос с некорректным JSON", () ->
                 given()
-                        .spec(spec)
+                        .spec(LoginSpec.loginRequestSpec)
                         .body(invalidJson)
                         .when()
                         .post("/users")
@@ -146,7 +141,7 @@ public class ReqresTests {
     void userCountPerPageTest() {
         step("Проверяем количество пользователей на странице", () ->
                 given()
-                        .spec(spec)
+                        .spec(LoginSpec.loginRequestSpec)
                         .when()
                         .get("/users?page=2")
                         .then()
