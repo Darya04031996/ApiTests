@@ -2,27 +2,20 @@ package tests;
 
 
 import io.restassured.RestAssured;
-import io.restassured.response.Response;
-import io.restassured.specification.RequestSpecification;
-import models.lombok.RegistrationRequest;
-import models.lombok.UpdateUserRequest;
-import models.pojo.LoginBodyModel;
-import models.pojo.LoginResponseModel;
+import models.lombok.*;
+import models.pojo.CreateUserLombokModel;
+import models.pojo.UpdateUserLombokModel;
+import models.pojo.UpdateUserResponseLombokModel;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import specs.LoginSpec;
 
 import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
-import static specs.LoginSpec.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ReqresTests {
-
-    private static RequestSpecification spec;
 
     @BeforeAll
     public static void setUp() {
@@ -30,115 +23,124 @@ public class ReqresTests {
     }
 
     @Test
-    @DisplayName("Успешный логин с правильными данными")
-    void testSuccessfulLogin() {
-        step("Отправляем запрос на логин с корректными данными", () -> {
-            LoginBodyModel loginBody = new LoginBodyModel();
-            loginBody.setEmail("eve.holt@reqres.in");
-            loginBody.setPassword("cityslicka");
+    void successfulLoginTest() {
+        LoginBodyLombokModel authData = new LoginBodyLombokModel();
+        authData.setEmail("eve.holt@reqres.in");
+        authData.setPassword("cityslicka");
 
-            Response response = given()
-                    .spec(LoginSpec.loginRequestSpec)
-                    .body(loginBody)
-                    .post();
+        LoginResponseLombokModel response = step("Make request for successful login", () ->
+                given(LoginSpec.loginRequestSpec)
+                        .body(authData)
 
-            step("Проверяем, что статус ответа равен 200 и токен присутствует", () -> {
-                response.then().spec(LoginSpec.loginResponseSpec);
+                        .when()
+                        .post()
 
-                LoginResponseModel loginResponse = response.as(LoginResponseModel.class);
-                assertNotNull(loginResponse.getToken(), "Токен должен быть не null");
-                assertTrue(loginResponse.getToken().length() > 0, "Токен должен быть не пустым");
-            });
+                        .then()
+                        .spec(LoginSpec.loginResponseSpec)
+                        .extract().as(LoginResponseLombokModel.class)
+        );
+
+        step("Check response token", () ->
+                assertEquals("QpwL5tke4Pnpja7X4", response.getToken())
+        );
+    }
+
+    @Test
+    void missingPasswordTest() {
+        LoginBodyLombokModel authData = new LoginBodyLombokModel();
+        authData.setEmail("eve.holt@reqres.in");
+
+        MissingPasswordModel response = step("Make request for login with missing password", () ->
+                given(LoginSpec.loginRequestSpec)
+                        .body(authData)
+
+                        .when()
+                        .post()
+
+                        .then()
+                        .spec(LoginSpec.missingPasswordResponseSpec)
+                        .extract().as(MissingPasswordModel.class)
+        );
+
+        step("Check error message in response", () ->
+                assertEquals("Missing password", response.getError())
+        );
+    }
+
+    @Test
+    void unsuccessfulLoginWithInvalidCredentialsTest() {
+        LoginBodyLombokModel authData = new LoginBodyLombokModel();
+        authData.setEmail("wrong.email@reqres.in");
+        authData.setPassword("wrongpassword");
+
+        ErrorResponseLombokModel response = step("Make request for login with invalid credentials", () ->
+                given(LoginSpec.loginRequestSpec)
+                        .body(authData)
+
+                        .when()
+                        .post()
+
+                        .then()
+                        .spec(LoginSpec.invalidCredentialsResponseSpec)
+                        .extract().as(ErrorResponseLombokModel.class)
+        );
+
+        step("Check error message in response", () ->
+                assertEquals("user not found", response.getError())
+        );
+    }
+
+    @Test
+    void successfulUserCreationTest() {
+        CreateUserLombokModel userData = new CreateUserLombokModel();
+        userData.setName("morpheus");
+        userData.setJob("leader");
+
+        CreateUserResponseLombokModel response = step("Make request for user creation", () ->
+                given()
+                        .contentType(JSON)
+                        .log().uri()
+                        .log().body()
+                        .body(userData)
+
+                        .when()
+                        .post("/api/users")
+
+                        .then()
+                        .statusCode(201) // CREATED
+                        .extract().as(CreateUserResponseLombokModel.class)
+        );
+
+        step("Check response contains correct name and job", () -> {
+            assertEquals("morpheus", response.getName());
+            assertEquals("leader", response.getJob());
         });
     }
 
     @Test
-    @DisplayName("Ошибка логина с неверными данными")
-    void testLoginWithInvalidCredentials() {
-        step("Отправляем запрос на логин с неверным email и паролем", () -> {
-            LoginBodyModel loginBody = new LoginBodyModel();
-            loginBody.setEmail("invalid@example.com");
-            loginBody.setPassword("wrongpassword");
+    void successfulUserUpdateTest() {
+        UpdateUserLombokModel updateData = new UpdateUserLombokModel();
+        updateData.setName("morpheus");
+        updateData.setJob("zion resident");
 
-            Response response = given()
-                    .spec(LoginSpec.loginRequestSpec)
-                    .body(loginBody)
-                    .post();
+        UpdateUserResponseLombokModel response = step("Make request to update user information", () ->
+                given()
+                        .contentType(JSON)
+                        .log().uri()
+                        .log().body()
+                        .body(updateData)
 
-            step("Проверяем, что статус ответа равен 400 и сообщение об ошибке корректное", () -> {
-                response.then()
-                        .spec(LoginSpec.invalidCredentialsResponseSpec);
+                        .when()
+                        .put("/api/users/2")
 
-                String error = response.jsonPath().getString("error");
-                assertEquals("Invalid login credentials", error, "Сообщение об ошибке некорректно");
-            });
-        });
-    }
+                        .then()
+                        .statusCode(200) // OK
+                        .extract().as(UpdateUserResponseLombokModel.class)
+        );
 
-    @Test
-    @DisplayName("Успешная регистрация нового пользователя")
-    void testSuccessfulRegistration() {
-        step("Отправляем запрос на регистрацию с корректными данными", () -> {
-            RegistrationRequest registrationBody = new RegistrationRequest();
-            registrationBody.setEmail("newuser@example.com");
-            registrationBody.setPassword("newpassword");
-
-            Response response = given()
-                    .spec(LoginSpec.loginRequestSpec)
-                    .body(registrationBody)
-                    .post("https://reqres.in/api/register");
-
-            step("Проверяем, что статус ответа равен 201 и токен присутствует", () -> {
-                response.then().spec(LoginSpec.registrationResponseSpec);
-
-                LoginResponseModel loginResponse = response.as(LoginResponseModel.class);
-                assertNotNull(loginResponse.getToken(), "Токен должен быть не null");
-                assertTrue(loginResponse.getToken().length() > 0, "Токен должен быть не пустым");
-            });
-        });
-    }
-
-    @Test
-    @DisplayName("Ошибка регистрации без пароля")
-    void testRegistrationWithMissingPassword() {
-        step("Отправляем запрос на регистрацию без указания пароля", () -> {
-            RegistrationRequest registrationBody = new RegistrationRequest();
-            registrationBody.setEmail("newuser@example.com");
-
-            Response response = given()
-                    .spec(LoginSpec.loginRequestSpec)
-                    .body(registrationBody)
-                    .post("https://reqres.in/api/register");
-
-            step("Проверяем, что статус ответа равен 400 и сообщение об ошибке корректное", () -> {
-                response.then().spec(LoginSpec.missingPasswordResponseSpec);
-
-                String error = response.jsonPath().getString("error");
-                assertEquals("Missing password", error, "Сообщение об ошибке некорректно");
-            });
-        });
-    }
-
-    @Test
-    @DisplayName("Успешное обновление данных пользователя")
-    void testUpdateUser() {
-        step("Отправляем запрос на обновление данных пользователя", () -> {
-            UpdateUserRequest updateUserBody = new UpdateUserRequest();
-            updateUserBody.setName("John Doe");
-            updateUserBody.setJob("Software Developer");
-
-            Response response = given()
-                    .spec(LoginSpec.loginRequestSpec)
-                    .body(updateUserBody)
-                    .put("https://reqres.in/api/users/2");
-
-            step("Проверяем, что статус ответа равен 200 и данные пользователя обновлены", () -> {
-                response.then().statusCode(200);
-
-                UpdateUserRequest updatedUser = response.as(UpdateUserRequest.class);
-                assertEquals("John Doe", updatedUser.getName(), "Имя пользователя не обновлено");
-                assertEquals("Software Developer", updatedUser.getJob(), "Должность пользователя не обновлена");
-            });
+        step("Check response contains updated name and job", () -> {
+            assertEquals("morpheus", response.getName());
+            assertEquals("zion resident", response.getJob());
         });
     }
 }
