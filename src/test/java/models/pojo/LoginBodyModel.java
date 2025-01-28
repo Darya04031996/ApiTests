@@ -23,7 +23,6 @@ String email, password, job, name;
         this.job= job;
     }
 
-    public void getName(String name) {
-        this.name= name;
+    public void getName() {this.name= name;
     }
 }

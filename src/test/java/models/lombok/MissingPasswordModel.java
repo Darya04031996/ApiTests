@@ -3,7 +3,7 @@ package models.lombok;
 import lombok.Data;
 
 @Data
-public class MissingPasswordLombokModel {
+public class MissingPasswordModel {
     String error;
 
 }
