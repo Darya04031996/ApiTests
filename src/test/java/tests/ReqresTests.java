@@ -103,7 +103,7 @@ public class ReqresTests {
                         .post("/api/users")
 
                         .then()
-                        .statusCode(201) // CREATED
+                        .statusCode(201)
                         .extract().as(LoginBodyModel.class)
         );
                 step("Check response contains correct name and job", () -> {
@@ -131,7 +131,7 @@ public class ReqresTests {
                         .put("/api/users/2")
 
                         .then()
-                        .statusCode(200) // OK
+                        .statusCode(200)
                         .extract().as(LoginBodyModel.class));
 
 
