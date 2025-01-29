@@ -1,8 +1,6 @@
 package tests;
 import io.restassured.RestAssured;
-import models.pojo.MissingPasswordModel;
-import models.pojo.LoginBodyModel;
-import models.pojo.LoginResponseModel;
+import models.pojo.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -95,53 +93,52 @@ public class ReqresTests {
     @Test
     @DisplayName("Successful user creation test")
     void successfulUserCreationTest() {
-        LoginBodyModel authData = new LoginBodyModel();
-        authData.setName("morpheus");
-        authData.setJob("leader");
+        UserRequestModel requestData = new UserRequestModel();
+        requestData.setName("morpheus");
+        requestData.setJob("leader");
 
-        LoginBodyModel response = step("Make request for user creation", () ->
+        UserResponseModel response = step("Make request for user creation", () ->
                 given()
                         .contentType(JSON)
                         .log().uri()
                         .log().body()
-                        .body(authData)
+                        .body(requestData)
 
                         .when()
                         .post("/api/users")
 
                         .then()
                         .statusCode(201)
-                        .extract().as(LoginBodyModel.class)
+                        .extract().as(UserResponseModel.class)
         );
-                step("Check response contains correct name and job", () -> {
-                    assertEquals("morpheus", response.getName());
-                    assertEquals("leader", response.getJob());
-                });
 
-
+        step("Check response contains correct name and job", () -> {
+            assertEquals("morpheus", response.getName());
+            assertEquals("leader", response.getJob());
+        });
     }
 
     @Test
     @DisplayName("Successful user update test")
     void successfulUserUpdateTest() {
-        LoginBodyModel authData = new LoginBodyModel();
-        authData.setName("morpheus");
-        authData.setJob("zion resident");
+        UserRequestModel requestData = new UserRequestModel();
+        requestData.setName("morpheus");
+        requestData.setJob("zion resident");
 
-        LoginBodyModel response = step("Make request to update user information", () ->
+        UserResponseModel response = step("Make request to update user information", () ->
                 given()
                         .contentType(JSON)
                         .log().uri()
                         .log().body()
-                        .body(authData)
+                        .body(requestData)
 
                         .when()
                         .put("/api/users/2")
 
                         .then()
                         .statusCode(200)
-                        .extract().as(LoginBodyModel.class));
-
+                        .extract().as(UserResponseModel.class)
+        );
 
         step("Check response contains updated name and job", () -> {
             assertEquals("morpheus", response.getName());
