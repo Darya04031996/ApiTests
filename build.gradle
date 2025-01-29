@@ -1,14 +1,38 @@
 plugins {
     id 'java-library'
+    id 'io.qameta.allure' version '2.11.2'
+    id "io.freefair.lombok" version "8.0.1"
 }
 
 repositories {
     mavenCentral()
 }
 
+def restAssuredVersion = "5.3.1"
+def allureVersion = "2.21.0"
+
+allure {
+    report {
+        version.set(allureVersion)
+    }
+    adapter {
+        aspectjWeaver.set(true)
+        frameworks {
+            junit5 {
+                adapterVersion.set(allureVersion)
+            }
+        }
+    }
+}
+
 dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
     testImplementation(
-            'io.rest-assured:rest-assured:5.3.1',
+            "io.rest-assured:rest-assured:$restAssuredVersion",
+            "io.rest-assured:json-schema-validator:$restAssuredVersion",
+            "io.qameta.allure:allure-rest-assured:$allureVersion",
             "org.junit.jupiter:junit-jupiter:5.10.0",
             'org.slf4j:slf4j-simple:2.0.7'
     )
@@ -23,4 +47,8 @@ tasks.withType(Test) {
             exceptionFormat "short"
         }
     }
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs.add("--add-opens=java.base/java.lang=ALL-UNNAMED")
 }
