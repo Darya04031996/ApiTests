@@ -1,11 +1,8 @@
 package tests;
-
-
 import io.restassured.RestAssured;
-import models.lombok.LoginBodyLombokModel;
-import models.lombok.LoginResponseLombokModel;
-import models.lombok.MissingPasswordModel;
+import models.pojo.MissingPasswordModel;
 import models.pojo.LoginBodyModel;
+import models.pojo.LoginResponseModel;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import specs.LoginSpec;
@@ -23,11 +20,11 @@ public class ReqresTests {
 
     @Test
     void successfulLoginTest() {
-        LoginBodyLombokModel authData = new LoginBodyLombokModel();
+        LoginBodyModel authData = new LoginBodyModel();
         authData.setEmail("eve.holt@reqres.in");
         authData.setPassword("cityslicka");
 
-        LoginResponseLombokModel response = step("Make request for successful login", () ->
+        LoginResponseModel response = step("Make request for successful login", () ->
                 given(LoginSpec.loginRequestSpec)
                         .body(authData)
 
@@ -36,7 +33,7 @@ public class ReqresTests {
 
                         .then()
                         .spec(LoginSpec.loginResponseSpec)
-                        .extract().as(LoginResponseLombokModel.class)
+                        .extract().as(LoginResponseModel.class)
         );
 
         step("Check response token", () ->
@@ -46,7 +43,7 @@ public class ReqresTests {
 
     @Test
     void missingPasswordTest() {
-        LoginBodyLombokModel authData = new LoginBodyLombokModel();
+        LoginBodyModel authData = new LoginBodyModel();
         authData.setEmail("eve.holt@reqres.in");
 
         MissingPasswordModel response = step("Make request for login with missing password", () ->
@@ -68,7 +65,7 @@ public class ReqresTests {
 
     @Test
     void unsuccessfulLoginWithInvalidCredentialsTest() {
-        LoginBodyLombokModel authData = new LoginBodyLombokModel();
+        LoginBodyModel authData = new LoginBodyModel();
         authData.setEmail("wrong.email@reqres.in");
         authData.setPassword("wrongpassword");
 
