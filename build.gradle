@@ -52,3 +52,8 @@ tasks.withType(Test) {
 tasks.withType(JavaCompile) {
     options.compilerArgs.add("--add-opens=java.base/java.lang=ALL-UNNAMED")
 }
+task simple_test(type: Test) {
+    useJUnitPlatform {
+        includeTags("simple")
+    }
+}

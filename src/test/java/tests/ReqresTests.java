@@ -4,6 +4,8 @@ import models.pojo.MissingPasswordModel;
 import models.pojo.LoginBodyModel;
 import models.pojo.LoginResponseModel;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import specs.LoginSpec;
 import static io.qameta.allure.Allure.step;
@@ -11,6 +13,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Tag("simple")
 public class ReqresTests {
 
     @BeforeAll
@@ -19,6 +22,7 @@ public class ReqresTests {
     }
 
     @Test
+    @DisplayName("Successful login test")
     void successfulLoginTest() {
         LoginBodyModel authData = new LoginBodyModel();
         authData.setEmail("eve.holt@reqres.in");
@@ -42,6 +46,7 @@ public class ReqresTests {
     }
 
     @Test
+    @DisplayName("Login test with missing password")
     void missingPasswordTest() {
         LoginBodyModel authData = new LoginBodyModel();
         authData.setEmail("eve.holt@reqres.in");
@@ -64,6 +69,7 @@ public class ReqresTests {
     }
 
     @Test
+    @DisplayName("Unsuccessful login with invalid credentials")
     void unsuccessfulLoginWithInvalidCredentialsTest() {
         LoginBodyModel authData = new LoginBodyModel();
         authData.setEmail("wrong.email@reqres.in");
@@ -87,6 +93,7 @@ public class ReqresTests {
     }
 
     @Test
+    @DisplayName("Successful user creation test")
     void successfulUserCreationTest() {
         LoginBodyModel authData = new LoginBodyModel();
         authData.setName("morpheus");
@@ -115,6 +122,7 @@ public class ReqresTests {
     }
 
     @Test
+    @DisplayName("Successful user update test")
     void successfulUserUpdateTest() {
         LoginBodyModel authData = new LoginBodyModel();
         authData.setName("morpheus");
