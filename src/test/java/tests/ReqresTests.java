@@ -1,38 +1,42 @@
 package tests;
 import io.restassured.RestAssured;
-import models.pojo.MissingPasswordModel;
-import models.pojo.LoginBodyModel;
-import models.pojo.LoginResponseModel;
+import models.*;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import specs.LoginSpec;
+
 import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.given;
-import static io.restassured.http.ContentType.JSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import specs.ApiSpec;
+
+
+
+@Tag("simple")
 public class ReqresTests {
 
     @BeforeAll
     public static void setUp() {
         RestAssured.baseURI = "https://reqres.in";
+        RestAssured.basePath = "/api";
     }
 
     @Test
+    @DisplayName("Successful login test")
     void successfulLoginTest() {
-        LoginBodyModel authData = new LoginBodyModel();
-        authData.setEmail("eve.holt@reqres.in");
-        authData.setPassword("cityslicka");
+        LoginRequestModel requestData = new LoginRequestModel();
+        requestData.setEmail("eve.holt@reqres.in");
+        requestData.setPassword("cityslicka");
 
         LoginResponseModel response = step("Make request for successful login", () ->
-                given(LoginSpec.loginRequestSpec)
-                        .body(authData)
-
+                given(ApiSpec.baseRequestSpec)
+                        .body(requestData)
                         .when()
-                        .post()
-
+                        .post("/login")
                         .then()
-                        .spec(LoginSpec.loginResponseSpec)
+                        .spec(ApiSpec.successResponseSpec)
                         .extract().as(LoginResponseModel.class)
         );
 
@@ -42,20 +46,19 @@ public class ReqresTests {
     }
 
     @Test
+    @DisplayName("Login test with missing password")
     void missingPasswordTest() {
-        LoginBodyModel authData = new LoginBodyModel();
-        authData.setEmail("eve.holt@reqres.in");
+        LoginRequestModel requestData = new LoginRequestModel();
+        requestData.setEmail("eve.holt@reqres.in");
 
-        MissingPasswordModel response = step("Make request for login with missing password", () ->
-                given(LoginSpec.loginRequestSpec)
-                        .body(authData)
-
+        ErrorResponseModel response = step("Make request for login with missing password", () ->
+                given(ApiSpec.baseRequestSpec)
+                        .body(requestData)
                         .when()
-                        .post()
-
+                        .post("/login")
                         .then()
-                        .spec(LoginSpec.missingPasswordResponseSpec)
-                        .extract().as(MissingPasswordModel.class)
+                        .spec(ApiSpec.errorResponseSpec)
+                        .extract().as(ErrorResponseModel.class)
         );
 
         step("Check error message in response", () ->
@@ -64,21 +67,20 @@ public class ReqresTests {
     }
 
     @Test
+    @DisplayName("Unsuccessful login with invalid credentials")
     void unsuccessfulLoginWithInvalidCredentialsTest() {
-        LoginBodyModel authData = new LoginBodyModel();
-        authData.setEmail("wrong.email@reqres.in");
-        authData.setPassword("wrongpassword");
+        LoginRequestModel requestData = new LoginRequestModel();
+        requestData.setEmail("wrong.email@reqres.in");
+        requestData.setPassword("wrongpassword");
 
-        MissingPasswordModel response = step("Make request for login with invalid credentials", () ->
-                given(LoginSpec.loginRequestSpec)
-                        .body(authData)
-
+        ErrorResponseModel response = step("Make request for login with invalid credentials", () ->
+                given(ApiSpec.baseRequestSpec)
+                        .body(requestData)
                         .when()
-                        .post()
-
+                        .post("/login")
                         .then()
-                        .spec(LoginSpec.invalidCredentialsResponseSpec)
-                        .extract().as(MissingPasswordModel.class)
+                        .spec(ApiSpec.errorResponseSpec)
+                        .extract().as(ErrorResponseModel.class)
         );
 
         step("Check error message in response", () ->
@@ -87,53 +89,44 @@ public class ReqresTests {
     }
 
     @Test
+    @DisplayName("Successful user creation test")
     void successfulUserCreationTest() {
-        LoginBodyModel authData = new LoginBodyModel();
-        authData.setName("morpheus");
-        authData.setJob("leader");
+        UserRequestModel requestData = new UserRequestModel();
+        requestData.setName("morpheus");
+        requestData.setJob("leader");
 
-        LoginBodyModel response = step("Make request for user creation", () ->
-                given()
-                        .contentType(JSON)
-                        .log().uri()
-                        .log().body()
-                        .body(authData)
-
+        UserResponseModel response = step("Make request for user creation", () ->
+                given(ApiSpec.baseRequestSpec)
+                        .body(requestData)
                         .when()
-                        .post("/api/users")
-
+                        .post("/users")
                         .then()
-                        .statusCode(201)
-                        .extract().as(LoginBodyModel.class)
+                        .spec(ApiSpec.createdResponseSpec)
+                        .extract().as(UserResponseModel.class)
         );
-                step("Check response contains correct name and job", () -> {
-                    assertEquals("morpheus", response.getName());
-                    assertEquals("leader", response.getJob());
-                });
 
-
+        step("Check response contains correct name and job", () -> {
+            assertEquals("morpheus", response.getName());
+            assertEquals("leader", response.getJob());
+        });
     }
 
     @Test
+    @DisplayName("Successful user update test")
     void successfulUserUpdateTest() {
-        LoginBodyModel authData = new LoginBodyModel();
-        authData.setName("morpheus");
-        authData.setJob("zion resident");
+        UserRequestModel requestData = new UserRequestModel();
+        requestData.setName("morpheus");
+        requestData.setJob("zion resident");
 
-        LoginBodyModel response = step("Make request to update user information", () ->
-                given()
-                        .contentType(JSON)
-                        .log().uri()
-                        .log().body()
-                        .body(authData)
-
+        UserResponseModel response = step("Make request to update user information", () ->
+                given(ApiSpec.baseRequestSpec)
+                        .body(requestData)
                         .when()
-                        .put("/api/users/2")
-
+                        .put("/users/2")
                         .then()
-                        .statusCode(200)
-                        .extract().as(LoginBodyModel.class));
-
+                        .spec(ApiSpec.successResponseSpec)
+                        .extract().as(UserResponseModel.class)
+        );
 
         step("Check response contains updated name and job", () -> {
             assertEquals("morpheus", response.getName());

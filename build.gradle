@@ -34,7 +34,8 @@ dependencies {
             "io.rest-assured:json-schema-validator:$restAssuredVersion",
             "io.qameta.allure:allure-rest-assured:$allureVersion",
             "org.junit.jupiter:junit-jupiter:5.10.0",
-            'org.slf4j:slf4j-simple:2.0.7'
+            'org.slf4j:slf4j-simple:2.0.7',
+            "org.assertj:assertj-core:3.24.2"
     )
 }
 
@@ -51,4 +52,10 @@ tasks.withType(Test) {
 
 tasks.withType(JavaCompile) {
     options.compilerArgs.add("--add-opens=java.base/java.lang=ALL-UNNAMED")
+}
+
+task simple_test(type: Test) {
+    useJUnitPlatform {
+        includeTags("simple")
+    }
 }
