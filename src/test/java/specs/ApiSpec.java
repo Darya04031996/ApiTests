@@ -1,6 +1,5 @@
 package specs;
 
-import io.restassured.RestAssured;
 import io.restassured.builder.ResponseSpecBuilder;
 
 
@@ -14,10 +13,6 @@ import static io.restassured.http.ContentType.JSON;
 
 public class ApiSpec {
 
-    static {
-        RestAssured.basePath = "/api";
-    }
-
     public static RequestSpecification baseRequestSpec = with()
             .filter(withCustomTemplates())
             .log().uri()
@@ -25,11 +20,6 @@ public class ApiSpec {
             .log().headers()
             .contentType(JSON);
 
-    public static RequestSpecification loginRequestSpec = baseRequestSpec
-            .basePath("/login");
-
-    public static RequestSpecification userRequestSpec = baseRequestSpec
-            .basePath("/users");
 
     public static ResponseSpecification successResponseSpec = new ResponseSpecBuilder()
             .expectStatusCode(200)

@@ -20,20 +20,21 @@ public class ReqresTests {
     @BeforeAll
     public static void setUp() {
         RestAssured.baseURI = "https://reqres.in";
+        RestAssured.basePath = "/api";
     }
 
     @Test
     @DisplayName("Successful login test")
     void successfulLoginTest() {
-        UserRequestModel requestData = new UserRequestModel();
-        requestData.setName("eve.holt@reqres.in");
-        requestData.setJob("cityslicka");
+        LoginRequestModel requestData = new LoginRequestModel();
+        requestData.setEmail("eve.holt@reqres.in");
+        requestData.setPassword("cityslicka");
 
         LoginResponseModel response = step("Make request for successful login", () ->
-                given(ApiSpec.loginRequestSpec)
+                given(ApiSpec.baseRequestSpec)
                         .body(requestData)
                         .when()
-                        .post()
+                        .post("/login")
                         .then()
                         .spec(ApiSpec.successResponseSpec)
                         .extract().as(LoginResponseModel.class)
@@ -47,14 +48,14 @@ public class ReqresTests {
     @Test
     @DisplayName("Login test with missing password")
     void missingPasswordTest() {
-        UserRequestModel requestData = new UserRequestModel();
-        requestData.setName("eve.holt@reqres.in");
+        LoginRequestModel requestData = new LoginRequestModel();
+        requestData.setEmail("eve.holt@reqres.in");
 
         ErrorResponseModel response = step("Make request for login with missing password", () ->
-                given(ApiSpec.loginRequestSpec)
+                given(ApiSpec.baseRequestSpec)
                         .body(requestData)
                         .when()
-                        .post()
+                        .post("/login")
                         .then()
                         .spec(ApiSpec.errorResponseSpec)
                         .extract().as(ErrorResponseModel.class)
@@ -68,15 +69,15 @@ public class ReqresTests {
     @Test
     @DisplayName("Unsuccessful login with invalid credentials")
     void unsuccessfulLoginWithInvalidCredentialsTest() {
-        UserRequestModel requestData = new UserRequestModel();
-        requestData.setName("wrong.email@reqres.in");
-        requestData.setJob("wrongpassword");
+        LoginRequestModel requestData = new LoginRequestModel();
+        requestData.setEmail("wrong.email@reqres.in");
+        requestData.setPassword("wrongpassword");
 
         ErrorResponseModel response = step("Make request for login with invalid credentials", () ->
-                given(ApiSpec.loginRequestSpec)
+                given(ApiSpec.baseRequestSpec)
                         .body(requestData)
                         .when()
-                        .post()
+                        .post("/login")
                         .then()
                         .spec(ApiSpec.errorResponseSpec)
                         .extract().as(ErrorResponseModel.class)
@@ -95,10 +96,10 @@ public class ReqresTests {
         requestData.setJob("leader");
 
         UserResponseModel response = step("Make request for user creation", () ->
-                given(ApiSpec.userRequestSpec)
+                given(ApiSpec.baseRequestSpec)
                         .body(requestData)
                         .when()
-                        .post()
+                        .post("/users")
                         .then()
                         .spec(ApiSpec.createdResponseSpec)
                         .extract().as(UserResponseModel.class)
@@ -118,10 +119,10 @@ public class ReqresTests {
         requestData.setJob("zion resident");
 
         UserResponseModel response = step("Make request to update user information", () ->
-                given(ApiSpec.userRequestSpec)
+                given(ApiSpec.baseRequestSpec)
                         .body(requestData)
                         .when()
-                        .put("/2")
+                        .put("/users/2")
                         .then()
                         .spec(ApiSpec.successResponseSpec)
                         .extract().as(UserResponseModel.class)
