@@ -1,11 +1,8 @@
-package models.pojo;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+package models;
 
 import lombok.Data;
 
 @Data
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserResponseModel {
     private String name;
     private String job;

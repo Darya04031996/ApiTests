@@ -1,15 +1,18 @@
 package tests;
 import io.restassured.RestAssured;
-import models.pojo.*;
+import models.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import specs.LoginSpec;
+
 import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.given;
-import static io.restassured.http.ContentType.JSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import specs.ApiSpec;
+
+
 
 @Tag("simple")
 public class ReqresTests {
@@ -22,19 +25,17 @@ public class ReqresTests {
     @Test
     @DisplayName("Successful login test")
     void successfulLoginTest() {
-        LoginBodyModel authData = new LoginBodyModel();
-        authData.setEmail("eve.holt@reqres.in");
-        authData.setPassword("cityslicka");
+        UserRequestModel requestData = new UserRequestModel();
+        requestData.setName("eve.holt@reqres.in");
+        requestData.setJob("cityslicka");
 
         LoginResponseModel response = step("Make request for successful login", () ->
-                given(LoginSpec.loginRequestSpec)
-                        .body(authData)
-
+                given(ApiSpec.loginRequestSpec)
+                        .body(requestData)
                         .when()
                         .post()
-
                         .then()
-                        .spec(LoginSpec.loginResponseSpec)
+                        .spec(ApiSpec.successResponseSpec)
                         .extract().as(LoginResponseModel.class)
         );
 
@@ -46,19 +47,17 @@ public class ReqresTests {
     @Test
     @DisplayName("Login test with missing password")
     void missingPasswordTest() {
-        LoginBodyModel authData = new LoginBodyModel();
-        authData.setEmail("eve.holt@reqres.in");
+        UserRequestModel requestData = new UserRequestModel();
+        requestData.setName("eve.holt@reqres.in");
 
-        MissingPasswordModel response = step("Make request for login with missing password", () ->
-                given(LoginSpec.loginRequestSpec)
-                        .body(authData)
-
+        ErrorResponseModel response = step("Make request for login with missing password", () ->
+                given(ApiSpec.loginRequestSpec)
+                        .body(requestData)
                         .when()
                         .post()
-
                         .then()
-                        .spec(LoginSpec.missingPasswordResponseSpec)
-                        .extract().as(MissingPasswordModel.class)
+                        .spec(ApiSpec.errorResponseSpec)
+                        .extract().as(ErrorResponseModel.class)
         );
 
         step("Check error message in response", () ->
@@ -69,20 +68,18 @@ public class ReqresTests {
     @Test
     @DisplayName("Unsuccessful login with invalid credentials")
     void unsuccessfulLoginWithInvalidCredentialsTest() {
-        LoginBodyModel authData = new LoginBodyModel();
-        authData.setEmail("wrong.email@reqres.in");
-        authData.setPassword("wrongpassword");
+        UserRequestModel requestData = new UserRequestModel();
+        requestData.setName("wrong.email@reqres.in");
+        requestData.setJob("wrongpassword");
 
-        MissingPasswordModel response = step("Make request for login with invalid credentials", () ->
-                given(LoginSpec.loginRequestSpec)
-                        .body(authData)
-
+        ErrorResponseModel response = step("Make request for login with invalid credentials", () ->
+                given(ApiSpec.loginRequestSpec)
+                        .body(requestData)
                         .when()
                         .post()
-
                         .then()
-                        .spec(LoginSpec.invalidCredentialsResponseSpec)
-                        .extract().as(MissingPasswordModel.class)
+                        .spec(ApiSpec.errorResponseSpec)
+                        .extract().as(ErrorResponseModel.class)
         );
 
         step("Check error message in response", () ->
@@ -98,17 +95,12 @@ public class ReqresTests {
         requestData.setJob("leader");
 
         UserResponseModel response = step("Make request for user creation", () ->
-                given()
-                        .contentType(JSON)
-                        .log().uri()
-                        .log().body()
+                given(ApiSpec.userRequestSpec)
                         .body(requestData)
-
                         .when()
-                        .post("/api/users")
-
+                        .post()
                         .then()
-                        .statusCode(201)
+                        .spec(ApiSpec.createdResponseSpec)
                         .extract().as(UserResponseModel.class)
         );
 
@@ -126,17 +118,12 @@ public class ReqresTests {
         requestData.setJob("zion resident");
 
         UserResponseModel response = step("Make request to update user information", () ->
-                given()
-                        .contentType(JSON)
-                        .log().uri()
-                        .log().body()
+                given(ApiSpec.userRequestSpec)
                         .body(requestData)
-
                         .when()
-                        .put("/api/users/2")
-
+                        .put("/2")
                         .then()
-                        .statusCode(200)
+                        .spec(ApiSpec.successResponseSpec)
                         .extract().as(UserResponseModel.class)
         );
 

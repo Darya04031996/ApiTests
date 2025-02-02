@@ -1,4 +1,4 @@
-package models.pojo;
+package models;
 
 import lombok.Data;
 
