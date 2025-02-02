@@ -4,14 +4,12 @@ import io.restassured.RestAssured;
 import io.restassured.builder.ResponseSpecBuilder;
 
 
-import io.restassured.filter.log.RequestLoggingFilter;
-
-import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
 
+import static helpers.CustomAllureListener.withCustomTemplates;
+import static io.restassured.RestAssured.with;
 import static io.restassured.filter.log.LogDetail.*;
-import static io.restassured.filter.log.RequestLoggingFilter.with;
 import static io.restassured.http.ContentType.JSON;
 
 public class ApiSpec {
@@ -21,8 +19,7 @@ public class ApiSpec {
     }
 
     public static RequestSpecification baseRequestSpec = with()
-            .filter(new RequestLoggingFilter())
-            .filter(new ResponseLoggingFilter())
+            .filter(withCustomTemplates())
             .log().uri()
             .log().body()
             .log().headers()
