@@ -8,7 +8,8 @@ import org.junit.jupiter.api.Test;
 
 import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 import specs.ApiSpec;
 
@@ -41,7 +42,7 @@ public class ReqresTests {
         );
 
         step("Check response token", () ->
-                assertEquals("QpwL5tke4Pnpja7X4", response.getToken())
+                assertThat(response.getToken()).isEqualTo("QpwL5tke4Pnpja7X4")
         );
     }
 
@@ -62,7 +63,7 @@ public class ReqresTests {
         );
 
         step("Check error message in response", () ->
-                assertEquals("Missing password", response.getError())
+                assertThat(response.getError()).isEqualTo("Missing password")
         );
     }
 
@@ -84,7 +85,7 @@ public class ReqresTests {
         );
 
         step("Check error message in response", () ->
-                assertEquals("user not found", response.getError())
+                assertThat(response.getError()).isEqualTo("user not found")
         );
     }
 
@@ -106,8 +107,8 @@ public class ReqresTests {
         );
 
         step("Check response contains correct name and job", () -> {
-            assertEquals("morpheus", response.getName());
-            assertEquals("leader", response.getJob());
+            assertThat(response.getName()).isEqualTo("morpheus");
+            assertThat(response.getJob()).isEqualTo("leader");
         });
     }
 
@@ -129,8 +130,8 @@ public class ReqresTests {
         );
 
         step("Check response contains updated name and job", () -> {
-            assertEquals("morpheus", response.getName());
-            assertEquals("zion resident", response.getJob());
+            assertThat(response.getName()).isEqualTo("morpheus");
+            assertThat(response.getJob()).isEqualTo("zion resident");
         });
     }
 }
